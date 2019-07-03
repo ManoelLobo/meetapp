@@ -14,6 +14,6 @@ routes.post('/sessions', SessionController.store);
 
 routes.use(authMiddleware);
 
-routes.get('/test', (req, res) => res.json({ status: 'ok' }));
+routes.put('/users', UserController.update);
 
 export default routes;
