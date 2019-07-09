@@ -8,7 +8,7 @@ import RegistrationMail from '../jobs/RegistrationMail';
 class RegistrationController {
   async store(req, res) {
     const meetup = await Meetup.findByPk(req.params.meetupId, {
-      include: [User],
+      include: [{ model: User, as: 'organizer' }],
     });
 
     if (!meetup) {
