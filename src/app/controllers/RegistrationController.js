@@ -2,6 +2,9 @@ import Meetup from '../models/Meetup';
 import User from '../models/User';
 import Registration from '../models/Registration';
 
+import Queue from '../../lib/Queue';
+import RegistrationMail from '../jobs/RegistrationMail';
+
 class RegistrationController {
   async store(req, res) {
     const meetup = await Meetup.findByPk(req.params.meetupId, {
@@ -42,7 +45,12 @@ class RegistrationController {
       meetup_id: meetup.id,
     });
 
-    // TODO send mail to organizer
+    const user = await User.findByPk(req.userId);
+
+    await Queue.add(RegistrationMail.key, {
+      meetup,
+      user,
+    });
 
     return res.json(registration);
   }
