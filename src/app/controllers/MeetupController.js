@@ -30,6 +30,44 @@ class MeetupController {
 
     return res.json(meetup);
   }
+
+  async update(req, res) {
+    const schema = Yup.object().shape({
+      title: Yup.string(),
+      file_id: Yup.number(),
+      description: Yup.string(),
+      location: Yup.string(),
+      date: Yup.date(),
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ error: 'Validation failed' });
+    }
+
+    const user_id = req.userId;
+
+    const meetup = await Meetup.findByPk(req.params.id);
+
+    if (!meetup) {
+      return res.status(400).json({ error: 'Invalid Meetup' });
+    }
+
+    if (meetup.user_id !== user_id) {
+      return res.status(401).json({ error: 'Not authorized' });
+    }
+
+    if (isBefore(parseISO(req.body.date), new Date())) {
+      return res.status(400).json({ error: 'Invalid Meetup date' });
+    }
+
+    if (meetup.past) {
+      return res.status(400).json({ error: "Can't update past meetups" });
+    }
+
+    await meetup.update(req.body);
+
+    return res.json(meetup);
+  }
 }
 
 export default new MeetupController();
