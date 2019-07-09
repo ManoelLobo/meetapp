@@ -1,3 +1,5 @@
+import { Op } from 'sequelize';
+
 import Meetup from '../models/Meetup';
 import User from '../models/User';
 import Registration from '../models/Registration';
@@ -6,6 +8,24 @@ import Queue from '../../lib/Queue';
 import RegistrationMail from '../jobs/RegistrationMail';
 
 class RegistrationController {
+  async index(req, res) {
+    const subscriptions = await Registration.findAll({
+      where: { user_id: req.userId },
+      attributes: ['id'],
+      include: [
+        {
+          model: Meetup,
+          attributes: ['id', 'title', 'description', 'location', 'date'],
+          where: { date: { [Op.gt]: new Date() } },
+          required: true,
+        },
+      ],
+      order: [[Meetup, 'date']],
+    });
+
+    return res.json(subscriptions);
+  }
+
   async store(req, res) {
     const meetup = await Meetup.findByPk(req.params.meetupId, {
       include: [{ model: User, as: 'organizer' }],
